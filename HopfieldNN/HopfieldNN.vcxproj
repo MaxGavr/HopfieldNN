@@ -128,11 +128,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,6 +144,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="HopfieldNN.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="a.txt" />
+    <Text Include="b.txt" />
+    <Text Include="c.txt" />
+    <Text Include="d.txt" />
+    <Text Include="e.txt" />
+    <Text Include="f.txt" />
+    <Text Include="g.txt" />
+    <Text Include="h.txt" />
+    <Text Include="i.txt" />
+    <Text Include="j.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
