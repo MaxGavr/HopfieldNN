@@ -2,8 +2,7 @@
 //
 
 #include "stdafx.h"
-
-
+#include <iomanip>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -25,6 +24,7 @@ using namespace std;
 */
 vector<string> letters;
 vector<vector<int>> parsedLetters;
+string testLetter = "...#.#.##";
 
 /* Функция для вычисления перевода символов в числа
 *  Составляет вектор из значений входного вектора, заменив их в 1 (для #) или -1(для .).
@@ -50,20 +50,19 @@ vector<int> parseFromString(string letter) {
 int main() {
 	setlocale(LC_ALL, "");
 
-	int WIDTH = 5;
+	int WIDTH = 9;
 	int m = 0;
 	int step = 0;
 
 	cout << "Лабораторная работа №3. \nРелаксационные нейронные сети.\nРаспознавание символов сетью Хопфилда.\n\n";
-	cout << "Какой размер образа? (пользовательский (необохимо ввести алфавит) или системный (5))\n\n";
+	cout << "Какой размер образа? (пользовательский (необохимо ввести алфавит) или системный (9))\n\n";
 	cout << "1. Пользовательский.\n2. Системный.\n";
 	int choose;
-	string testLetter;
 	cin >> choose;
 	cout << "Алфавит образов: \n";
 	if (choose == 2) {
 		srand(time(NULL));
-		for (char letter = 'a'; letter < 'j'; letter++) {
+		for (char letter = 'a'; letter < 'c'; letter++) { //j
 			string filename = "x.txt";
 			filename[0] = letter;
 			ifstream fileStream(filename);
@@ -75,12 +74,9 @@ int main() {
 			m++;
 		}
 		cout << "\nВвести образ самостоятельно или воспользователься системным?\n1.Свой;\n2.Системный:\n";
-		cout << ". . . . . " << endl;
+		cout << testLetter << endl;
 		cin >> choose;
-		if (choose == 2) {
-			testLetter = "#####";
-		}
-		else {
+		if (choose ==1){
 			cout << "Введите " << WIDTH << " символов :\n";
 			string temp;
 			cin >> temp;
@@ -112,77 +108,62 @@ int main() {
 
 	cout << "\nПросматривать выход нейрона сетив пошаговом режиме? (1-да, 2-нет.) :\n";
 	cin >> step;
-
-	vector<vector<int>> Y;
-	vector<vector<int>> Yi;
-	vector< vector<vector<int>>> W;
-	vector<vector<int>> weight;
-	vector<int> temp;
-
-	// Составление весовых матриц для всех образов по формуле W = (2*Y -1).t * (2*Y -1) - единичная матрица.
-	// Cоставление вектора Y, который равен m строкам по parseFromString(testLetter)
-	// (!!!!! Все, что дальше сделано с Y, сделано наугад, так что лучше проверить)
-	// В Головко был описан алгорит только для одного образа, а у нас много.
-	// По сути, у меня будет работать m сетей, каждая будет сравнивать входной вектор с каким-то одним эталоном.
-	// Та, что быстрее отработает, "победит".
-	// (!!!!!) Повторяю, проверь, мб надо в этой лабе все запихать в одну сеть.
-
-	if (step == 1) cout << "Весовые матрицы: \n";
-	for (int i = 0; i < m; i++) {
-		if (step == 1) cout << "Весовая матрица " << i << ": \n";
-		Y.push_back(parseFromString(testLetter));
-		Yi.push_back(temp);
-		W.push_back(weight);
+	cout << endl;
+	vector<int> Y;
+	vector<vector<int>> relax; // нужно чтоб понять достигла ли сеть релаксации или нет (по заданию не требуется)
+	bool relaxBool = false;
+	vector<vector<double>> W;
+	vector<double> temp;
+	int result = -1;
+	if (step == 1) cout << "Весовая матрица: \n";
+	for (int i = 0; i < WIDTH; i++) {
+		W.push_back(temp);
 		for (int j = 0; j < WIDTH; j++) {
-			W[i].push_back(temp);
-			for (int k = 0; k < WIDTH; k++) {
-				W[i][j].push_back((2 * parsedLetters[i][j] - 1)*(2 * parsedLetters[i][k] - 1));
-				if (j == k) W[i][j][k] = 0;
-				if (step == 1) cout << W[i][j][k] << " ";
-			}
-			if (step == 1) cout << endl;
-		}
-	}
-	int itr = 1;
-	int result = 0;
-	bool nn = true;
-	if (step == 1) cout << " Распознавание образа : \n";
-	while (nn) {
-		for (int i = 0; i < WIDTH; i++) {
-			int s = 0;
+			int sum = 0;
 			for (int k = 0; k < m; k++) {
-				for (int j = 0; j < WIDTH; j++) {
-					s += Y[k][j] * W[k][i][j];
-				}
-				if (step == 1) cout << " Взвешенная сумма образа " << k + 1 << " элемента " << i << ": \n";
-				if (s > 0) Y[k][i] = 1;
-				else Y[k][i] = -1;
-				if (step == 1) {
-					cout << " Текущий результат : ";
-					for (int n = 0; n < WIDTH; n++) {
-						if (Y[k][n] == -1) cout << ". ";
-						if (Y[k][n] == 1) cout << "# ";
-					}
-					cout << endl;
-				}
-				if (Y[k] == parsedLetters[k]) {
-					if (Yi[k] == Y[k]) {
-						temp.push_back(k);
-						k = m;
-						i = WIDTH;
-						nn = false;
-					}
-					else Yi[k] = Y[k];
-				}
+				sum += parsedLetters[k][j] * parsedLetters[k][i];
+			}
+			if (i == j) sum = 0;
+			W[i].push_back(sum);
+			cout.precision(2);
+			if (step == 1) cout << W[i][j] << " ";
+		}
+		if (step == 1) cout << endl;
+	}
+	if (step == 1)  cout << endl;
+	Y = parseFromString(testLetter);
+	bool cont = true;
+	int itr = 1;
+	int neuron = -1;
+	while (cont && relaxBool != true) {
+		if (neuron < WIDTH-1) neuron++;
+		else neuron = 0;		
+		double sum = 0;
+		for (int i = 0; i < WIDTH; i++) {
+			sum += W[i][neuron] * Y[neuron];
+		}
+		if (sum > 0) Y[neuron] = 1;
+		else Y[neuron] = -1;
+		for (int i = 0; i < relax.size(); i++) {
+			if (relax[i] == Y && neuron == WIDTH ) relaxBool = true;
+		}
+		for (int i = 0; i < m; i++) {
+			if (Y == parsedLetters[i]) {
+				result = i;
+				cont = false;
 			}
 		}
-		cout << "Итерация : " << itr << endl;
 		itr++;
+		relax.push_back(Y);
+		cout << "\nИтерация " << itr << ": ";
+		for (int i = 0; i < WIDTH; i++) {
+			if (Y[i] == 1) cout << "# ";
+			else cout << ". ";
+		}
+		if (neuron == WIDTH) cout << endl;
 	}
-	for (int i = 0; i < temp.size(); i++) {
-		result = temp[i];
-		cout << "Введенный образ соответствует образу " << 1 + result << " :" << letters[result] << endl;
-	}
+	if (relaxBool == true) cout << "\n\nСеть достигла релаксации.\n";
+	if (result != -1 )cout << "Введенный образ соответствует образу " << 1 + result << " :" << letters[result] << endl;
 	system("pause");
 	return 0;
 }
