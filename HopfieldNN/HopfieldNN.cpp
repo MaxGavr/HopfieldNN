@@ -1,7 +1,6 @@
 ﻿// HopfieldNN.cpp: определяет точку входа для консольного приложения.
 //
 
-#include "stdafx.h"
 #include <iomanip>
 #include <vector>
 #include <string>
