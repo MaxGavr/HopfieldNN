@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <ctime>
 
+#include <armadillo>
+
 using namespace std;
 
 
