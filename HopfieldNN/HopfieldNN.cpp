@@ -113,9 +113,6 @@ int main()
 	cin >> step;
 	cout << endl;
 
-	vector<vector<int>> relax; // нужно чтоб понять достигла ли сеть релаксации или нет (по заданию не требуется)
-	bool relaxBool = false;
-
     // initialize weight matrix
     vector<vector<double>> W(WIDTH, vector<double>(WIDTH, 0));
 
@@ -149,6 +146,9 @@ int main()
 
     vector<int> Y = parseFromString(testSymbol);
 
+    vector<vector<int>> relax; // нужно чтоб понять достигла ли сеть релаксации или нет (по заданию не требуется)
+    bool relaxBool = false;
+
     int result = -1;
 
 	bool cont = true;
@@ -172,7 +172,7 @@ int main()
 
 		for (int i = 0; i < relax.size(); i++)
         {
-			if (relax[i] == Y && neuron == WIDTH)
+			if (relax[i] == Y/* && neuron == WIDTH*/)
                 relaxBool = true;
 		}
 
