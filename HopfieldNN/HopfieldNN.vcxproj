@@ -150,9 +150,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="HopfieldNN.cpp" />
+    <ClCompile Include="NeuralNetwork.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="a.txt" />
+    <Text Include="alphavite.txt" />
     <Text Include="b.txt" />
     <Text Include="c.txt" />
     <Text Include="d.txt" />
@@ -162,6 +164,9 @@
     <Text Include="h.txt" />
     <Text Include="i.txt" />
     <Text Include="j.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="NeuralNetwork.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

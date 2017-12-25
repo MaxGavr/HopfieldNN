@@ -21,6 +21,9 @@
     <ClCompile Include="HopfieldNN.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
+    <ClCompile Include="NeuralNetwork.cpp">
+      <Filter>Файлы исходного кода</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="j.txt">
@@ -53,5 +56,13 @@
     <Text Include="a.txt">
       <Filter>Буквы</Filter>
     </Text>
+    <Text Include="alphavite.txt">
+      <Filter>Буквы</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="NeuralNetwork.h">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

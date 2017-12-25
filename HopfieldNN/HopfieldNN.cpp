@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <ctime>
 
-#include <armadillo>
+#include "NeuralNetwork.h"
 
 using namespace std;
 
@@ -38,78 +38,55 @@ vector<int> parseFromString(string letter)
 int main()
 {
 	setlocale(LC_ALL, "");
+    srand(time(NULL));
 
-	int WIDTH = 9;
-	int m = 0;
-	int step = 0;
+    NeuralNetwork nn;
 
-	cout << "Сеть Хопфилда.\n\n";
-    cout << "Введите размер входного образа:" << endl;
-    cout << "1. Произвольный" << endl;
-    cout << "2. По умолчанию (9)" << endl;
+    cout << "1. Ввести множество образов вручную" << endl;
+    cout << "   или " << endl;
+    cout << "2. Загрузить образы из файла" << endl;
+    cout << "Ваш выбор: ";
 
-	int choose;
-	cin >> choose;
-	cout << "Алфавит образов: \n";
-	if (choose == 2)
+	int choice;
+	cin >> choice;
+
+    if (choice == 1)
     {
-		srand(time(NULL));
-		for (char letter = 'a'; letter < 'c'; letter++)
+        cout << endl << "Введите размер входного образа: ";
+
+        int imageSize;
+        cin >> imageSize;
+
+        cout << endl << "Введите количество образов: ";
+
+        int imageAmount;
+        // TODO: check for max value (N - 1)
+        cin >> imageAmount;
+
+        // ignore newline character
+        string tmp;
+        getline(cin, tmp);
+
+        Symbol symbol;
+        for (int i = 0; i < imageAmount; ++i)
         {
-			string filename = "x.txt";
-			filename[0] = letter;
+            cin >> symbol;
+            nn.addSymbol(symbol);
+        }
+    }
+    else
+        nn.loadAlphavite("alphavite.txt");
 
-			ifstream fileStream(filename);
-			string representation(istreambuf_iterator<char>{fileStream}, {});
-			fileStream.close();
+    cout << endl << "Алфавит сети: " << endl;
+    for (const Symbol& symbol : nn.getAlphavite())
+        cout << symbol << endl;
 
-			symbols.push_back(representation);
-			parsedSymbols.push_back(parseFromString(representation));
+    system("pause");
 
-			cout << m + 1 << ". " << symbols[m] << endl;
-			m++;
-		}
-
-		cout << "\nВвести образ самостоятельно или воспользователься системным?\n1.Свой;\n2.Системный:\n";
-		cout << testSymbol << endl;
-		cin >> choose;
-		if (choose ==1)
-        {
-			cout << "Введите " << WIDTH << " символов :\n";
-			string temp;
-			cin >> temp;
-
-			testSymbol += temp;
-		}
-	}
-	else
-    {
-		int number;
-		cout << "Введите ширину символов : \n";
-		cin >> WIDTH;
-		cout << "Введите число символов в афавите : \n";
-		cin >> number;
-
-		string sign;
-		for (int i = 0; i < number; i++)
-        {
-			cout << "Введите символ алфавита: \n";
-			cout << "Введите " << WIDTH << "символов :\n";
-			string temp;
-			cin >> temp;
-			sign += temp;
-
-			symbols.push_back(sign);
-			parsedSymbols.push_back(parseFromString(sign));
-
-			m++;
-		}
-		cout << "Введите обрабатываемый образ " << WIDTH << " символов :\n";
-		string temp;
-		cin >> temp;
-
-		testSymbol += temp;
-	}
+    /*
+    int WIDTH = 9;
+    int m = 0;
+    int step = 0;
 
 	cout << "\nПросматривать выход нейрона сетив пошаговом режиме? (1-да, 2-нет.) :\n";
 	cin >> step;
@@ -174,7 +151,7 @@ int main()
 
 		for (int i = 0; i < relax.size(); i++)
         {
-			if (relax[i] == Y/* && neuron == WIDTH*/)
+			if (relax[i] == Y && neuron == WIDTH)
                 relaxBool = true;
 		}
 
@@ -207,6 +184,6 @@ int main()
 
 	if (result != -1 )
         cout << "Введенный образ соответствует образу " << 1 + result << " :" << symbols[result] << endl;
-
+        */
 	return 0;
 }
