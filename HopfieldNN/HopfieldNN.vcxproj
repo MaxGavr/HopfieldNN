@@ -153,17 +153,7 @@
     <ClCompile Include="NeuralNetwork.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="a.txt" />
     <Text Include="alphavite.txt" />
-    <Text Include="b.txt" />
-    <Text Include="c.txt" />
-    <Text Include="d.txt" />
-    <Text Include="e.txt" />
-    <Text Include="f.txt" />
-    <Text Include="g.txt" />
-    <Text Include="h.txt" />
-    <Text Include="i.txt" />
-    <Text Include="j.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NeuralNetwork.h" />

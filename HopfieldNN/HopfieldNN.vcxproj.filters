@@ -13,7 +13,7 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Буквы">
+    <Filter Include="Алфавит">
       <UniqueIdentifier>{6f7766d2-f0cd-4b9c-8654-be6b10c7c3fb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -26,38 +26,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="j.txt">
-      <Filter>Буквы</Filter>
-    </Text>
-    <Text Include="h.txt">
-      <Filter>Буквы</Filter>
-    </Text>
-    <Text Include="i.txt">
-      <Filter>Буквы</Filter>
-    </Text>
-    <Text Include="g.txt">
-      <Filter>Буквы</Filter>
-    </Text>
-    <Text Include="f.txt">
-      <Filter>Буквы</Filter>
-    </Text>
-    <Text Include="e.txt">
-      <Filter>Буквы</Filter>
-    </Text>
-    <Text Include="d.txt">
-      <Filter>Буквы</Filter>
-    </Text>
-    <Text Include="c.txt">
-      <Filter>Буквы</Filter>
-    </Text>
-    <Text Include="b.txt">
-      <Filter>Буквы</Filter>
-    </Text>
-    <Text Include="a.txt">
-      <Filter>Буквы</Filter>
-    </Text>
     <Text Include="alphavite.txt">
-      <Filter>Буквы</Filter>
+      <Filter>Алфавит</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>

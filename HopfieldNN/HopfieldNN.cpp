@@ -40,6 +40,8 @@ int main()
 	setlocale(LC_ALL, "");
     srand(time(NULL));
 
+    NeuralNetwork::generateAlphavite("alphavite.txt", 9, 2);
+
     NeuralNetwork nn;
 
     cout << "1. Ввести множество образов вручную" << endl;
@@ -82,6 +84,10 @@ int main()
         cout << symbol << endl;
 
     system("pause");
+
+    nn.train();
+
+    cout << nn.mWeights;
 
     /*
     int WIDTH = 9;

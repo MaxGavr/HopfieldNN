@@ -80,10 +80,39 @@ NeuralNetwork::~NeuralNetwork()
 {
 }
 
+void NeuralNetwork::train()
+{
+    size_t imageWidth = getSymbolWidth();
+
+    mWeights = arma::mat(imageWidth, imageWidth, arma::fill::zeros);
+
+    for (const Symbol& symbol : mAlphavite)
+    {
+        arma::Row<int> img = symbol.mBinary;
+
+        arma::mat first = mWeights * img.t() - img.t();
+        arma::mat second = first.t();
+        arma::mat third = img * img.t() - (img * mWeights) * img.t();
+
+        mWeights += first * second * (1 / third(0, 0));
+    }
+}
+
 
 NeuralNetwork::Alphavite NeuralNetwork::getAlphavite() const
 {
     return mAlphavite;
+}
+
+size_t NeuralNetwork::getAlphaviteSize() const
+{
+    return mAlphavite.size();
+}
+
+size_t NeuralNetwork::getSymbolWidth() const
+{
+    // TODO: ensure alphavite is not empty
+    return mAlphavite.at(0).getWidth();
 }
 
 void NeuralNetwork::addSymbol(const Symbol& symbol)
@@ -95,6 +124,9 @@ void NeuralNetwork::loadAlphavite(const std::string& fileName)
 {
     std::ifstream file;
     file.open(fileName, std::ifstream::in);
+
+    if (!file.is_open())
+        return;
 
     while (!file.eof())
     {
@@ -135,7 +167,10 @@ void NeuralNetwork::generateAlphavite(const std::string& outputFile, size_t imag
         } while (std::find(alphavite.begin(), alphavite.end(), symbol) != alphavite.end());
 
         symbol.setImage(symbolImage);
-        file << symbol << std::endl;
+        file << symbol;
+
+        if (i < amount - 1)
+            file << std::endl;
 
         ++letter;
     }
