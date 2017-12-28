@@ -16,6 +16,7 @@ public:
     void setImage(std::string image);
 
     static arma::Row<int> convertImageToBinary(std::string image);
+    void updateImage();
 
     std::string mName;
     std::string mImage;
@@ -31,6 +32,7 @@ public:
     ~NeuralNetwork();
 
     void train();
+    bool recognize(Symbol symbol);
 
     Alphavite getAlphavite() const;
     size_t getAlphaviteSize() const;
@@ -43,9 +45,10 @@ public:
 
     arma::mat mWeights;
 private:
-    Alphavite mAlphavite;
+    int getRandomNeuron() const;
+    bool areVectorsEqual(const arma::Row<int>& first, const arma::Row<int>& second) const;
 
-    
+    Alphavite mAlphavite;
 };
 
 std::ostream& operator<<(std::ostream& stream, const Symbol& symbol);

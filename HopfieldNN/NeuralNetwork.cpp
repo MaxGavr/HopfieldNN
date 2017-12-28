@@ -47,6 +47,19 @@ arma::Row<int> Symbol::convertImageToBinary(std::string image)
     return tmpVector;
 }
 
+void Symbol::updateImage()
+{
+    for (int i = 0; i < mBinary.n_elem; ++i)
+    {
+        if (mBinary(i) == 1)
+            mImage.at(i) = '#';
+        else if (mBinary(i) == -1)
+            mImage.at(i) = '.';
+        else
+            throw std::logic_error("Неверное значение двоичного вектора!");
+    }
+}
+
 std::ostream& operator<<(std::ostream& stream, const Symbol& symbol)
 {
     stream << symbol.mName << " : " << symbol.mImage;
@@ -96,6 +109,61 @@ void NeuralNetwork::train()
 
         mWeights += first * second * (1 / third(0, 0));
     }
+}
+
+bool NeuralNetwork::recognize(Symbol symbol)
+{
+    std::vector<arma::Row<int>> previous;
+    bool relaxed = false;
+    int iteration = 0;
+
+    while (!relaxed)
+    {
+        int neuron = getRandomNeuron();
+
+        arma::Row<double> tmp = symbol.mBinary * mWeights.col(neuron);
+        double weightedSum = tmp(0, 0);
+
+        // activation function
+        if (weightedSum > 0)
+            symbol.mBinary(neuron) = 1;
+        else if (weightedSum < 0)
+            symbol.mBinary(neuron) = -1;
+
+        if (previous.size() >= 100)
+        {
+            for (auto it = previous.end() - 100; it != previous.end(); ++it)
+            {
+                if (!areVectorsEqual(*it, symbol.mBinary))
+                {
+                    relaxed = false;
+                    break;
+                }
+                relaxed = true;
+            }
+        }
+
+        iteration++;
+        previous.push_back(symbol.mBinary);
+
+        symbol.updateImage();
+
+        std::cout << "Итерация " << iteration << ": " << symbol.mImage << std::endl;
+    }
+
+    if (relaxed)
+        std::cout << std::endl << "Сеть достигла релаксации." << std::endl;
+
+    for (const Symbol& sym : mAlphavite)
+    {
+        if (sym == symbol)
+        {
+            std::cout << "Введенный образ соответствует образу: " << std::endl;
+            std::cout << sym << std::endl;
+        }
+    }
+
+    return true;
 }
 
 
@@ -176,4 +244,14 @@ void NeuralNetwork::generateAlphavite(const std::string& outputFile, size_t imag
     }
 
     file.close();
+}
+
+int NeuralNetwork::getRandomNeuron() const
+{
+    return rand() % getSymbolWidth();
+}
+
+bool NeuralNetwork::areVectorsEqual(const arma::Row<int>& first, const arma::Row<int>& second) const
+{
+    return all(first == second);
 }
