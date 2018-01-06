@@ -5,7 +5,11 @@
 class Symbol
 {
 public:
+    using BinaryImage = arma::Row<int>;
+
     Symbol(std::string name = "", std::string image = "");
+
+    bool loadFromFile(std::string fileName);
 
     bool operator==(const Symbol& symbol) const;
     friend std::ostream& operator<<(std::ostream& stream, const Symbol& symbol);
@@ -14,25 +18,34 @@ public:
     int getWidth() const;
 
     void setImage(std::string image);
-
-    static arma::Row<int> convertImageToBinary(std::string image);
     void updateImage();
+
+    static BinaryImage convertImageToBinary(std::string image);
 
     std::string mName;
     std::string mImage;
-    arma::Row<int> mBinary;
+    BinaryImage mBinary;
 };
 
 class NeuralNetwork
 {
 public:
     using Alphavite = std::vector<Symbol>;
+    using Matrix = arma::mat;
 
     NeuralNetwork();
     ~NeuralNetwork();
 
+    void setRelaxationPeriod(size_t period);
+
+    bool getShowNeuronsOutput() const;
+    void showNeuronsOutput(bool show = true);
+
+    bool getShowWeightMatrix() const;
+    void showWeightMatrix(bool show = true);
+
     void train();
-    bool recognize(Symbol symbol);
+    void recognize(Symbol symbol);
 
     Alphavite getAlphavite() const;
     size_t getAlphaviteSize() const;
@@ -44,11 +57,15 @@ public:
     static void generateAlphavite(const std::string& outputFile, size_t imageSize, size_t amount);
 
     arma::mat mWeights;
+
 private:
     int getRandomNeuron() const;
-    bool areVectorsEqual(const arma::Row<int>& first, const arma::Row<int>& second) const;
+    bool areImagesEqual(const Symbol::BinaryImage& first, const Symbol::BinaryImage& second) const;
 
     Alphavite mAlphavite;
+    size_t mRelaxationPeriod;
+    bool mShowNeuronsOutput;
+    bool mShowWeightMatrix;
 };
 
 std::ostream& operator<<(std::ostream& stream, const Symbol& symbol);

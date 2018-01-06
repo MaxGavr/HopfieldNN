@@ -8,6 +8,23 @@ Symbol::Symbol(std::string name, std::string image)
 {
 }
 
+bool Symbol::loadFromFile(std::string fileName)
+{
+    std::ifstream file;
+    file.open(fileName, std::ifstream::in);
+
+    if (!file.is_open())
+        return false;
+
+    Symbol symbol;
+    file >> symbol;
+
+    *this = symbol;
+
+    file.close();
+    return true;
+}
+
 bool Symbol::operator==(const Symbol& symbol) const
 {
     if (this->mImage == symbol.mImage)
@@ -27,9 +44,11 @@ void Symbol::setImage(std::string image)
     mBinary = convertImageToBinary(mImage);
 }
 
-arma::Row<int> Symbol::convertImageToBinary(std::string image)
+Symbol::BinaryImage Symbol::convertImageToBinary(std::string image)
 {
+    // remove spaces
     image.erase(std::remove_if(image.begin(), image.end(), isspace), image.end());
+
     std::vector<int> tmpVector(image.size());
 
     auto toInt = [](char c) -> int
@@ -39,7 +58,7 @@ arma::Row<int> Symbol::convertImageToBinary(std::string image)
         else if (c == '#')
             return 1;
         else
-            throw std::logic_error("Неверное значение входного вектора!");
+            throw std::logic_error("Некорректный символ образа!");
     };
 
     std::transform(image.begin(), image.end(), tmpVector.begin(), toInt);
@@ -71,13 +90,15 @@ std::istream& operator>>(std::istream& stream, Symbol& symbol)
     std::string rawString;
     std::getline(stream, rawString);
 
+    // remove spaces
     rawString.erase(std::remove_if(rawString.begin(), rawString.end(), isspace), rawString.end());
 
+    // read symbol's name and image
     std::istringstream sStream(rawString);
-
     std::getline(sStream, symbol.mName, ':');
     std::getline(sStream, symbol.mImage);
 
+    // convert symbol's image to binary form
     symbol.mBinary = Symbol::convertImageToBinary(symbol.mImage);
 
     return stream;
@@ -85,6 +106,9 @@ std::istream& operator>>(std::istream& stream, Symbol& symbol)
 
 
 NeuralNetwork::NeuralNetwork()
+    : mRelaxationPeriod(30),
+      mShowNeuronsOutput(true),
+      mShowWeightMatrix(true)
 {
 }
 
@@ -93,34 +117,73 @@ NeuralNetwork::~NeuralNetwork()
 {
 }
 
+void NeuralNetwork::setRelaxationPeriod(size_t period)
+{
+    mRelaxationPeriod = period;
+}
+
+bool NeuralNetwork::getShowNeuronsOutput() const
+{
+    return mShowNeuronsOutput;
+}
+
+void NeuralNetwork::showNeuronsOutput(bool show)
+{
+    mShowNeuronsOutput = show;
+}
+
+bool NeuralNetwork::getShowWeightMatrix() const
+{
+    return mShowWeightMatrix;
+}
+
+void NeuralNetwork::showWeightMatrix(bool show)
+{
+    mShowWeightMatrix = show;
+}
+
 void NeuralNetwork::train()
 {
-    size_t imageWidth = getSymbolWidth();
+    const size_t imageWidth = getSymbolWidth();
 
-    mWeights = arma::mat(imageWidth, imageWidth, arma::fill::zeros);
+    // initialize zero-filled weight matrix
+    mWeights = Matrix(imageWidth, imageWidth, arma::fill::zeros);
 
+    // calculate weights using Delta-rule
     for (const Symbol& symbol : mAlphavite)
     {
-        arma::Row<int> img = symbol.mBinary;
+        const Symbol::BinaryImage& img = symbol.mBinary;
 
-        arma::mat first = mWeights * img.t() - img.t();
-        arma::mat second = first.t();
-        arma::mat third = img * img.t() - (img * mWeights) * img.t();
+        // first multiplier
+        Matrix first = mWeights * img.t() - img.t();
+        // second multiplier
+        Matrix second = first.t();
+        // divider, size 1x1
+        Matrix third = img * img.t() - (img * mWeights) * img.t();
 
-        mWeights += first * second * (1 / third(0, 0));
+        mWeights += first * second * (1.0 / third(0, 0));
+    }
+
+    if (mShowWeightMatrix)
+    {
+        std::cout << "Матрица весов: " << std::endl;
+        std::cout << mWeights << std::endl;
     }
 }
 
-bool NeuralNetwork::recognize(Symbol symbol)
+void NeuralNetwork::recognize(Symbol symbol)
 {
-    std::vector<arma::Row<int>> previous;
+    Symbol initialSymbol = symbol;
+
+    std::vector<Symbol::BinaryImage> previous;
     bool relaxed = false;
     int iteration = 0;
 
     while (!relaxed)
     {
-        int neuron = getRandomNeuron();
+        const int neuron = getRandomNeuron();
 
+        // size 1x1
         arma::Row<double> tmp = symbol.mBinary * mWeights.col(neuron);
         double weightedSum = tmp(0, 0);
 
@@ -130,11 +193,14 @@ bool NeuralNetwork::recognize(Symbol symbol)
         else if (weightedSum < 0)
             symbol.mBinary(neuron) = -1;
 
-        if (previous.size() >= 100)
+        // check if reached relaxation
+        if (previous.size() >= mRelaxationPeriod)
         {
-            for (auto it = previous.end() - 100; it != previous.end(); ++it)
+            for (auto it = previous.end() - mRelaxationPeriod; it != previous.end(); ++it)
             {
-                if (!areVectorsEqual(*it, symbol.mBinary))
+                const Symbol::BinaryImage& mPrevImage = *it;
+
+                if (!areImagesEqual(mPrevImage, symbol.mBinary))
                 {
                     relaxed = false;
                     break;
@@ -147,23 +213,32 @@ bool NeuralNetwork::recognize(Symbol symbol)
         previous.push_back(symbol.mBinary);
 
         symbol.updateImage();
-
-        std::cout << "Итерация " << iteration << ": " << symbol.mImage << std::endl;
+        if (mShowNeuronsOutput)
+            std::cout << "Итерация " << iteration << ": " << symbol.mImage << std::endl;
+        else
+            std::cout << "Итерация " << iteration << std::endl;
     }
 
     if (relaxed)
-        std::cout << std::endl << "Сеть достигла релаксации." << std::endl;
+        std::cout << std::endl << "Сеть достигла состояния релаксации." << std::endl << std::endl;
 
+    // check if symbol has been recognized
+    bool recognized = false;
     for (const Symbol& sym : mAlphavite)
     {
         if (sym == symbol)
         {
-            std::cout << "Введенный образ соответствует образу: " << std::endl;
-            std::cout << sym << std::endl;
+            std::cout << "Введенный образ: " << std::endl
+                << initialSymbol << std::endl
+                << " соответствует образу : " << std::endl
+                << sym << std::endl;
+            recognized = true;
+            break;
         }
     }
 
-    return true;
+    if (!recognized)
+        std::cout << "Сеть не смогла распознать образ." << std::endl;
 }
 
 
@@ -179,8 +254,14 @@ size_t NeuralNetwork::getAlphaviteSize() const
 
 size_t NeuralNetwork::getSymbolWidth() const
 {
-    // TODO: ensure alphavite is not empty
-    return mAlphavite.at(0).getWidth();
+    try
+    {
+        return mAlphavite.at(0).getWidth();
+    }
+    catch (std::out_of_range e)
+    {
+        return 0;
+    }
 }
 
 void NeuralNetwork::addSymbol(const Symbol& symbol)
@@ -251,7 +332,7 @@ int NeuralNetwork::getRandomNeuron() const
     return rand() % getSymbolWidth();
 }
 
-bool NeuralNetwork::areVectorsEqual(const arma::Row<int>& first, const arma::Row<int>& second) const
+bool NeuralNetwork::areImagesEqual(const Symbol::BinaryImage& first, const Symbol::BinaryImage& second) const
 {
     return all(first == second);
 }

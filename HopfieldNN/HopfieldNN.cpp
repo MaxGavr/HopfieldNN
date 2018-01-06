@@ -10,89 +10,216 @@
 
 using namespace std;
 
+NeuralNetwork network;
 
-vector<string> symbols;
-vector<vector<int>> parsedSymbols;
-string testSymbol = "...#.#.##";
-
-vector<int> parseFromString(string letter)
+void readInt(int& value)
 {
-    letter.erase(remove_if(letter.begin(), letter.end(), isspace), letter.end());
-    vector<int> result(letter.size());
-
-    auto toInt = [](char c) -> int
-    {
-        if (c == '.')
-            return -1;
-        else if (c == '#')
-            return 1;
-        else
-            throw logic_error("Неверное значение входного вектора!");
-    };
-
-    transform(letter.begin(), letter.end(), result.begin(), toInt);
-
-	return result;
+    cin >> value;
+    cin.ignore();
 }
+
+void alphaviteMenu()
+{
+    cout << endl << "Выберите способ задания алфавита:" << endl;
+    cout << "1. Вручную" << endl;
+    cout << "2. Загрузить из файла" << endl;
+    cout << "---------------------------------" << endl;
+    cout << "Выбор: ";
+
+    int answer = -1;
+    while (answer < 0 || answer > 2)
+    {
+        readInt(answer);
+
+        if (answer == 1)
+        {
+            cout << "Длина образа: ";
+            int imageWidth;
+            readInt(imageWidth);
+
+            cout << "Количество образов: ";
+            int imageCount;
+            readInt(imageCount);
+
+            cout << "Введите образы в формате:\n\t<название образа> : <образ>" << endl;
+
+            for (int i = 0; i < imageCount; ++i)
+            {
+                Symbol symbol;
+                cout << "Введите образ №" << i + 1 << ":" << endl;
+
+                cin >> symbol;
+                network.addSymbol(symbol);
+            }
+        }
+        else if (answer == 2)
+        {
+            cout << "Введите имя файла: ";
+            string fileName;
+            cin >> fileName;
+
+            network.loadAlphavite(fileName);
+        }
+        else if (answer == 0)
+            return;
+    }
+
+    cout << "Алфавит задан: " << network.getAlphaviteSize() << " образов, ";
+    cout << "длина образа - " << network.getSymbolWidth() << endl;
+    
+    system("pause");
+}
+
+void recognizeMenu()
+{
+    if (network.getAlphaviteSize() == 0)
+    {
+        cout << endl << "Алфавит не задан!" << endl;
+        return;
+    }
+
+    cout << endl << "Выберите способ задания распознаваемого образа: " << endl;
+    cout << "1. Вручную" << endl;
+    cout << "2. Загрузить из файла" << endl;
+    cout << "-----------------------------------------------" << endl;
+    cout << "Выбор: ";
+
+    Symbol symbolToRecognize;
+
+    int answer = -1;
+    while (answer < 0 || answer > 2)
+    {
+        readInt(answer);
+
+        if (answer == 1)
+        {
+            cout << "Введите образ длиной " << network.getSymbolWidth() << " в формате: " << endl;
+            cout << "\t<название образа> : <образ>" << endl;
+
+            cin >> symbolToRecognize;
+        }
+        else if (answer == 2)
+        {
+            cout << "Введите название файла: ";
+            string fileName;
+            cin >> fileName;
+
+            symbolToRecognize.loadFromFile(fileName);
+        }
+        else if (answer == 0)
+            return;
+    }
+
+    cout << "Распознаваемый образ задан:" << endl;
+    cout << symbolToRecognize;
+
+    cout << "Обучение сети..." << endl;
+    network.train();
+
+    cout << "Распознавание образа..." << endl;
+    network.recognize(symbolToRecognize);
+}
+
+void showAlphavite()
+{
+    if (network.getAlphaviteSize() == 0)
+    {
+        cout << endl << "Алфавит не задан!" << endl;
+        return;
+    }
+
+    NeuralNetwork::Alphavite alphavite = network.getAlphavite();
+    cout << "Алфавит сети содержит " << network.getAlphaviteSize() << " образов длиной " << network.getSymbolWidth() << endl;
+    for (const Symbol& symbol : alphavite)
+        cout << symbol << endl;
+}
+
+void paramsMenu()
+{
+    int answer = -1;
+    while (answer != 0)
+    {
+        system("cls");
+
+        cout << "Текущие параметры сети:" << endl;
+        cout << "    - количество запомненных образов: " << network.getAlphaviteSize() << endl;
+        cout << "    - размер образа: " << network.getSymbolWidth() << endl;
+        cout << "(1) - отображать матрицу весов: " << std::boolalpha << network.getShowWeightMatrix() << endl;
+        cout << "(2) - отображать выходы нейронов: " << std::boolalpha << network.getShowNeuronsOutput() << "." << endl;
+        cout << "--------------------------------------" << endl;
+        cout << "0. Назад" << endl;
+        cout << "--------------------------------------" << endl;
+        cout << "Действие: ";
+
+        readInt(answer);
+
+        switch (answer)
+        {
+        case 1:
+            network.showWeightMatrix(!network.getShowWeightMatrix());
+            break;
+        case 2:
+            network.showNeuronsOutput(!network.getShowNeuronsOutput());
+            break;
+        case 0:
+            return;
+        }
+    }
+}
+
+void menu()
+{
+    cout << "Релаксационная сеть Хопфилда" << endl;
+
+    int answer = -1;
+    while (answer != 0)
+    {
+        cout << endl;
+        cout << "Действия:" << endl;
+        cout << "1. Распознать образ" << endl;
+        cout << "2. Задать алфавит" << endl;
+        cout << "3. Просмотреть алфавит" << endl;
+        cout << "4. Задать параметры сети" << endl;
+        cout << "5. Очистить консоль" << endl;
+        cout << "0. Выход" << endl;
+        cout << "----------------------" << endl;
+        cout << "Выбор: ";
+
+        int answer;
+        readInt(answer);
+
+        switch (answer)
+        {
+        case 1:
+            recognizeMenu();
+            break;
+        case 2:
+            alphaviteMenu();
+            break;
+        case 3:
+            showAlphavite();
+            break;
+        case 4:
+            paramsMenu();
+            break;
+        case 5:
+            system("cls");
+            break;
+        case 0:
+            cout << "Завершение работы..." << endl;
+            return;
+            break;
+        }
+    }
+}
+
 
 int main()
 {
 	setlocale(LC_ALL, "");
     srand(time(NULL));
 
-    NeuralNetwork::generateAlphavite("alphavite.txt", 9, 2);
-
-    NeuralNetwork nn;
-
-    cout << "1. Ввести множество образов вручную" << endl;
-    cout << "   или " << endl;
-    cout << "2. Загрузить образы из файла" << endl;
-    cout << "Ваш выбор: ";
-
-	int choice;
-	cin >> choice;
-
-    if (choice == 1)
-    {
-        cout << endl << "Введите размер входного образа: ";
-
-        int imageSize;
-        cin >> imageSize;
-
-        cout << endl << "Введите количество образов: ";
-
-        int imageAmount;
-        // TODO: check for max value (N - 1)
-        cin >> imageAmount;
-
-        // ignore newline character
-        string tmp;
-        getline(cin, tmp);
-
-        Symbol symbol;
-        for (int i = 0; i < imageAmount; ++i)
-        {
-            cin >> symbol;
-            nn.addSymbol(symbol);
-        }
-    }
-    else
-        nn.loadAlphavite("alphavite.txt");
-
-    cout << endl << "Алфавит сети: " << endl;
-    for (const Symbol& symbol : nn.getAlphavite())
-        cout << symbol << endl;
-
-    system("pause");
-
-    nn.train();
-
-    cout << nn.mWeights;
-
-    Symbol test("test");
-    test.setImage("....#....");
-
-    nn.recognize(test);
+    menu();
 
 	return 0;
 }
