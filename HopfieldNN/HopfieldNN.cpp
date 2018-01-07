@@ -23,11 +23,12 @@ void alphaviteMenu()
     cout << endl << "Выберите способ задания алфавита:" << endl;
     cout << "1. Вручную" << endl;
     cout << "2. Загрузить из файла" << endl;
+    cout << "3. Удалить все образы" << endl;
     cout << "---------------------------------" << endl;
     cout << "Выбор: ";
 
     int answer = -1;
-    while (answer < 0 || answer > 2)
+    while (answer < 0 || answer > 3)
     {
         readInt(answer);
 
@@ -58,7 +59,11 @@ void alphaviteMenu()
             string fileName;
             cin >> fileName;
 
-            network.loadAlphavite(fileName);
+            network.loadAlphavite(fileName, true);
+        }
+        else if (answer == 3)
+        {
+            network.clearAlphavite();
         }
         else if (answer == 0)
             return;

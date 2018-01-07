@@ -51,6 +51,9 @@ public:
     bool getTwoDimensionalImages() const;
     void setTwoDimensionalImages(bool twoDimensional = true);
 
+    bool getPrintLogToFile() const;
+    void setPrintLogToFile(bool print = true);
+
     void train();
     void recognize(Symbol symbol);
 
@@ -60,12 +63,15 @@ public:
     size_t getSymbolWidth() const;
 
     void addSymbol(const Symbol& symbol);
-    void loadAlphavite(const std::string& fileName);
+    void loadAlphavite(const std::string& fileName, bool append = true);
+    void clearAlphavite();
     static void generateAlphavite(const std::string& outputFile, size_t imageSize, size_t amount);
 
     arma::mat mWeights;
 
 private:
+    void printMessage(std::string message);
+
     int getRandomNeuron() const;
     bool areImagesEqual(const Symbol::BinaryImage& first, const Symbol::BinaryImage& second) const;
 
@@ -74,6 +80,10 @@ private:
     bool mShowNeuronsOutput;
     bool mShowWeightMatrix;
     bool mTwoDimensionalImages;
+    bool mPrintLogToFile;
+
+    std::string mLogFileName;
+    std::ofstream mLogFileStream;
 };
 
 std::ostream& operator<<(std::ostream& stream, const Symbol& symbol);

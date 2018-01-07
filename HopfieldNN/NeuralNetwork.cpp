@@ -130,10 +130,12 @@ std::istream& operator>>(std::istream& stream, Symbol& symbol)
 
 
 NeuralNetwork::NeuralNetwork()
-    : mRelaxationPeriod(30),
+    : mRelaxationPeriod(100),
       mShowNeuronsOutput(true),
-      mShowWeightMatrix(true),
-      mTwoDimensionalImages(false)
+      mShowWeightMatrix(false),
+      mTwoDimensionalImages(true),
+      mPrintLogToFile(true),
+      mLogFileName("log.txt")
 {
 }
 
@@ -182,6 +184,16 @@ void NeuralNetwork::setTwoDimensionalImages(bool twoDimensional)
     mTwoDimensionalImages = twoDimensional;
 }
 
+bool NeuralNetwork::getPrintLogToFile() const
+{
+    return mPrintLogToFile;
+}
+
+void NeuralNetwork::setPrintLogToFile(bool print)
+{
+    mPrintLogToFile = print;
+}
+
 void NeuralNetwork::train()
 {
     const size_t imageWidth = getSymbolWidth();
@@ -204,10 +216,19 @@ void NeuralNetwork::train()
         mWeights += first * second * (1.0 / third(0, 0));
     }
 
+    if (mPrintLogToFile)
+    {
+        mLogFileStream.open(mLogFileName, std::ofstream::out | std::ofstream::trunc);
+        if (!mLogFileStream.is_open())
+            throw std::exception("Ошибка при открытии файла для записи лога!");
+    }
+
     if (mShowWeightMatrix)
     {
-        std::cout << "Матрица весов: " << std::endl;
+        printMessage("Матрица весов:\n");
         std::cout << mWeights << std::endl;
+        if (mPrintLogToFile)
+            mLogFileStream << mWeights << std::endl;
         system("pause");
     }
 }
@@ -256,17 +277,21 @@ void NeuralNetwork::recognize(Symbol symbol)
         symbol.updateImage();
         if (mShowNeuronsOutput)
         {
+            std::stringstream output;
+            output << "Итерация " << iteration << ": ";
             if (mTwoDimensionalImages)
-                std::cout << "Итерация " << iteration << ":" << std::endl << symbol << std::endl;
+                output << std::endl << symbol << std::endl;
             else
-                std::cout << "Итерация " << iteration << ": " << symbol.mImage << std::endl;
+                output << symbol.mImage << std::endl;
+
+            printMessage(output.str());
         }
         else
-            std::cout << "Итерация " << iteration << std::endl;
+            printMessage("Итерация " + std::to_string(iteration) + "\n");
     }
 
     if (relaxed)
-        std::cout << std::endl << "Сеть достигла состояния релаксации." << std::endl << std::endl;
+        printMessage("\nСеть достигла состояния релаксации.\n\n");
 
     // check if symbol has been recognized
     bool recognized = false;
@@ -274,17 +299,23 @@ void NeuralNetwork::recognize(Symbol symbol)
     {
         if (sym == symbol)
         {
-            std::cout << "Введенный образ: " << std::endl
+            std::stringstream result;
+            result << "Введенный образ" << std::endl
                 << initialSymbol << std::endl
-                << " соответствует образу : " << std::endl
+                << " соответствует образу:" << std::endl
                 << sym << std::endl;
+            printMessage(result.str());
+
             recognized = true;
             break;
         }
     }
 
     if (!recognized)
-        std::cout << "Сеть не смогла распознать образ." << std::endl;
+        printMessage("Сеть не смогла распознать образ.\n");
+
+    if (mPrintLogToFile)
+        mLogFileStream.close();
 }
 
 
@@ -315,7 +346,7 @@ void NeuralNetwork::addSymbol(const Symbol& symbol)
     mAlphavite.push_back(symbol);
 }
 
-void NeuralNetwork::loadAlphavite(const std::string& fileName)
+void NeuralNetwork::loadAlphavite(const std::string& fileName, bool append)
 {
     std::ifstream file;
     file.open(fileName, std::ifstream::in);
@@ -323,7 +354,8 @@ void NeuralNetwork::loadAlphavite(const std::string& fileName)
     if (!file.is_open())
         return;
 
-    Alphavite().swap(mAlphavite);
+    if (!append)
+        Alphavite().swap(mAlphavite);
 
     while (!file.eof())
     {
@@ -335,6 +367,11 @@ void NeuralNetwork::loadAlphavite(const std::string& fileName)
     }
 
     file.close();
+}
+
+void NeuralNetwork::clearAlphavite()
+{
+    Alphavite().swap(mAlphavite);
 }
 
 void NeuralNetwork::generateAlphavite(const std::string& outputFile, size_t imageSize, size_t amount)
@@ -375,6 +412,14 @@ void NeuralNetwork::generateAlphavite(const std::string& outputFile, size_t imag
     }
 
     file.close();
+}
+
+void NeuralNetwork::printMessage(std::string message)
+{
+    std::cout << message;
+
+    if (mPrintLogToFile)
+        mLogFileStream << message;
 }
 
 int NeuralNetwork::getRandomNeuron() const
