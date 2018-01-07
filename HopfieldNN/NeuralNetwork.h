@@ -18,6 +18,7 @@ public:
     int getWidth() const;
 
     void setImage(std::string image);
+    void setTwoDimensional(bool twoDimensional);
     void updateImage();
 
     static BinaryImage convertImageToBinary(std::string image);
@@ -25,6 +26,8 @@ public:
     std::string mName;
     std::string mImage;
     BinaryImage mBinary;
+
+    bool mTwoDimensional;
 };
 
 class NeuralNetwork
@@ -36,6 +39,7 @@ public:
     NeuralNetwork();
     ~NeuralNetwork();
 
+    int getRelaxationPeriod() const;
     void setRelaxationPeriod(size_t period);
 
     bool getShowNeuronsOutput() const;
@@ -43,6 +47,9 @@ public:
 
     bool getShowWeightMatrix() const;
     void showWeightMatrix(bool show = true);
+
+    bool getTwoDimensionalImages() const;
+    void setTwoDimensionalImages(bool twoDimensional = true);
 
     void train();
     void recognize(Symbol symbol);
@@ -66,6 +73,7 @@ private:
     size_t mRelaxationPeriod;
     bool mShowNeuronsOutput;
     bool mShowWeightMatrix;
+    bool mTwoDimensionalImages;
 };
 
 std::ostream& operator<<(std::ostream& stream, const Symbol& symbol);

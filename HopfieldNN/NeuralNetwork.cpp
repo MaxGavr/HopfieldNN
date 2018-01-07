@@ -1,10 +1,13 @@
 #include "NeuralNetwork.h"
 
+#include <math.h>
+
 
 Symbol::Symbol(std::string name, std::string image)
     : mName(name),
       mImage(image),
-      mBinary(convertImageToBinary(image))
+      mBinary(convertImageToBinary(image)),
+      mTwoDimensional(false)
 {
 }
 
@@ -17,6 +20,7 @@ bool Symbol::loadFromFile(std::string fileName)
         return false;
 
     Symbol symbol;
+    symbol.setTwoDimensional(mTwoDimensional);
     file >> symbol;
 
     *this = symbol;
@@ -42,6 +46,11 @@ void Symbol::setImage(std::string image)
 {
     mImage = image;
     mBinary = convertImageToBinary(mImage);
+}
+
+void Symbol::setTwoDimensional(bool twoDimensional)
+{
+    mTwoDimensional = true;
 }
 
 Symbol::BinaryImage Symbol::convertImageToBinary(std::string image)
@@ -81,14 +90,29 @@ void Symbol::updateImage()
 
 std::ostream& operator<<(std::ostream& stream, const Symbol& symbol)
 {
-    stream << symbol.mName << " : " << symbol.mImage;
+    if (symbol.mTwoDimensional)
+    {
+        stream << symbol.mName << " : " << std::endl;
+
+        const int rows = sqrt(symbol.getWidth());
+
+        for (size_t i = 0; i < rows; ++i)
+        {
+            for (size_t j = 0; j < rows; ++j)
+                stream << symbol.mImage.at(i * rows + j);
+            stream << std::endl;
+        }
+    }
+    else
+        stream << symbol.mName << " : " << symbol.mImage;
+
     return stream;
 }
 
 std::istream& operator>>(std::istream& stream, Symbol& symbol)
 {
     std::string rawString;
-    std::getline(stream, rawString);
+    std::getline(stream, rawString, symbol.mTwoDimensional ? '~' : '\n');
 
     // remove spaces
     rawString.erase(std::remove_if(rawString.begin(), rawString.end(), isspace), rawString.end());
@@ -108,13 +132,19 @@ std::istream& operator>>(std::istream& stream, Symbol& symbol)
 NeuralNetwork::NeuralNetwork()
     : mRelaxationPeriod(30),
       mShowNeuronsOutput(true),
-      mShowWeightMatrix(true)
+      mShowWeightMatrix(true),
+      mTwoDimensionalImages(false)
 {
 }
 
 
 NeuralNetwork::~NeuralNetwork()
 {
+}
+
+int NeuralNetwork::getRelaxationPeriod() const
+{
+    return mRelaxationPeriod;
 }
 
 void NeuralNetwork::setRelaxationPeriod(size_t period)
@@ -140,6 +170,16 @@ bool NeuralNetwork::getShowWeightMatrix() const
 void NeuralNetwork::showWeightMatrix(bool show)
 {
     mShowWeightMatrix = show;
+}
+
+bool NeuralNetwork::getTwoDimensionalImages() const
+{
+    return mTwoDimensionalImages;
+}
+
+void NeuralNetwork::setTwoDimensionalImages(bool twoDimensional)
+{
+    mTwoDimensionalImages = twoDimensional;
 }
 
 void NeuralNetwork::train()
@@ -168,6 +208,7 @@ void NeuralNetwork::train()
     {
         std::cout << "Матрица весов: " << std::endl;
         std::cout << mWeights << std::endl;
+        system("pause");
     }
 }
 
@@ -214,7 +255,12 @@ void NeuralNetwork::recognize(Symbol symbol)
 
         symbol.updateImage();
         if (mShowNeuronsOutput)
-            std::cout << "Итерация " << iteration << ": " << symbol.mImage << std::endl;
+        {
+            if (mTwoDimensionalImages)
+                std::cout << "Итерация " << iteration << ":" << std::endl << symbol << std::endl;
+            else
+                std::cout << "Итерация " << iteration << ": " << symbol.mImage << std::endl;
+        }
         else
             std::cout << "Итерация " << iteration << std::endl;
     }
@@ -277,10 +323,14 @@ void NeuralNetwork::loadAlphavite(const std::string& fileName)
     if (!file.is_open())
         return;
 
+    Alphavite().swap(mAlphavite);
+
     while (!file.eof())
     {
         Symbol symbol;
+        symbol.setTwoDimensional(mTwoDimensionalImages);
         file >> symbol;
+        file.ignore(1, '\n');
         mAlphavite.push_back(symbol);
     }
 

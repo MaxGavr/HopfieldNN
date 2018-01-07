@@ -85,6 +85,7 @@ void recognizeMenu()
     cout << "Выбор: ";
 
     Symbol symbolToRecognize;
+    symbolToRecognize.setTwoDimensional(network.getTwoDimensionalImages());
 
     int answer = -1;
     while (answer < 0 || answer > 2)
@@ -112,6 +113,7 @@ void recognizeMenu()
 
     cout << "Распознаваемый образ задан:" << endl;
     cout << symbolToRecognize;
+    system("pause");
 
     cout << "Обучение сети..." << endl;
     network.train();
@@ -146,6 +148,8 @@ void paramsMenu()
         cout << "    - размер образа: " << network.getSymbolWidth() << endl;
         cout << "(1) - отображать матрицу весов: " << std::boolalpha << network.getShowWeightMatrix() << endl;
         cout << "(2) - отображать выходы нейронов: " << std::boolalpha << network.getShowNeuronsOutput() << "." << endl;
+        cout << "(3) - двумерные образы: " << std::boolalpha << network.getTwoDimensionalImages() << endl;
+        cout << "(4) - период релаксации: " << network.getRelaxationPeriod() << endl;
         cout << "--------------------------------------" << endl;
         cout << "0. Назад" << endl;
         cout << "--------------------------------------" << endl;
@@ -160,6 +164,15 @@ void paramsMenu()
             break;
         case 2:
             network.showNeuronsOutput(!network.getShowNeuronsOutput());
+            break;
+        case 3:
+            network.setTwoDimensionalImages(!network.getTwoDimensionalImages());
+            break;
+        case 4:
+            cout << "Введите длительность периода релаксации (кол-во итераций): ";
+            int period;
+            readInt(period);
+            network.setRelaxationPeriod(period);
             break;
         case 0:
             return;
